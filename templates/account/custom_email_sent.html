@@ -1,0 +1,33 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}確認メールを送信しました{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+    <div class="max-w-md mx-auto">
+        <div class="bg-white shadow-2xl rounded-3xl p-10 text-center border-4 border-violet-400">
+            
+            <h1 style="color: red; font-size: 1.3rem; margin-bottom: 20px;">
+                登録いただき、誠とにありがとうございます！
+            </h1>
+            
+            <div class="text-6xl mb-6">📧</div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">確認メールを送信しました</h1>
+            
+            <p class="text-gray-600 mb-8">
+                <strong>{{ email }}</strong> へ確認メールを送信しました。
+            </p>
+            
+            <p class="text-sm text-gray-500 mb-10">
+                メールに記載されたリンクをクリックして<br>
+                ユーザー登録を完了させてください。
+            </p>
+
+            <a href="{% url 'login' %}" 
+               class="block w-full py-4 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-2xl">
+                ログイン画面へ戻る
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>【モバイルオーダーシステム】</title>
+</head>
+<body>
+    <h1>🎉 【モバイルオーダーシステム】</h1>
+    <p style="font-size: 1.3rem; color: #555;">モバイルオーダーシステム</p>
+
+    {% if user.is_authenticated %}
+        <div class="success">
+            ✅ ログイン成功しました！
+        </div>
+        <p style="font-size: 1.4rem;">
+            <strong>{{ user.name }} 様</strong><br>
+            ようこそ！
+        </p>
+        <p>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">ログアウト</button>
+            </form>
+        </p>
+    {% else %}
+        <p style="font-size: 1.2rem; color: #666;">
+            まだログインしていません。
+        </p>
+        <p>
+            <a href="{% url 'login' %}">ログインする</a>
+        </p>
+    {% endif %}
+
+</body>
+</html>

@@ -1,0 +1,70 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}ログイン{% endblock %}
+    
+{% block content %}
+
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+        <div class="max-w-md w-full">
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-10">
+                <!-- Logo Area -->
+                <div class="text-center mb-8">
+                    <div class="text-sm mb-3">【ここにロゴを入れる】</div>
+                    <h1 class="text-2xl font-bold text-gray-900">モバイルオーダーシステム</h1>
+                    <p class="text-gray-500 mt-1">ログイン</p>
+                </div>
+
+                {% if form.errors %}
+                    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">
+                        メールアドレスまたはパスワードが正しくありません。
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}" class="space-y-6">
+
+                    {% csrf_token %}
+
+                    <!--E-Mail Field-->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                        <input type="email" name="username" id="id_username"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-violet-500"
+                            placeholder="example@email.com" required>
+                    </div>
+
+                    <!--Password Field-->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
+                        <input type="password" name="password" id="id_password"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-violet-500"
+                            placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" 
+                        class="w-full bg-violet-600 hover:bg-violet-700 transition-colors text-white font-medium py-4 rounded-2xl text-lg">
+                        ログイン
+                    </button>
+
+                </form>
+
+                <div class="mt-6 flex items-center justify-between">
+                    
+                        <a href="{% url 'register' %}" class="text-sm text-violet-600 hover:underline">
+                            新規登録
+                        </a>
+                    
+                        <a href="#" class="text-sm text-violet-600 hover:underline">
+                            パスワードをお忘れですか？
+                        </a>
+                    
+                </div>
+                
+                <p class="mt-8 text-center text-xs text-gray-400">
+                    © 2026 モバイルオーダーシステム
+                </p>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

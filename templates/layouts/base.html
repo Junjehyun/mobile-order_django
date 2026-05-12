@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="jp">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}【モバイルオーダーシステム】{% endblock %} </title>
+        <link rel="stylesheet" href="{% static 'css/output.css' %}">
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body class="bg-gray-50">
+        {% include 'layouts/includes/header.html' %}
+        <main class="min-h-screen">
+            {% block content %}
+            {% endblock %}
+        </main>
+        {% include 'layouts/includes/footer.html' %}
+        {% block extra_js %}{% endblock %}
+    </body>
+</html>
