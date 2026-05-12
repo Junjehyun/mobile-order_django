@@ -1,0 +1,22 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}メール確認完了{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+    <div class="max-w-md mx-auto">
+        <div class="bg-white shadow-2xl rounded-3xl p-10 text-center">
+            <div class="text-7xl mb-8">✅</div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">メール確認が完了しました</h1>
+            <p class="text-xl text-gray-600 mb-10">
+                ユーザー登録が正常に完了しました！<br>
+                ログイン状態になっています。
+            </p>
+            <a href="{% url 'home' %}" 
+                class="block w-full py-5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-2xl text-xl">
+                ホーム画面へ移動
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

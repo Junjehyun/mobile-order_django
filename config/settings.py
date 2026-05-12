@@ -170,7 +170,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # 開発環境ではコンソールにメール内容を表示する
-
+EMAIL_DEBUG = True
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 # 나중에 실제 Gmail 등으로 바꿀 때 사용할 수 있도록 미리 준비
 # EMAIL_HOST = 'smtp.gmail.com'
 # EMAIL_PORT = 587
