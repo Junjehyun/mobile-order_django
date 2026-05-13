@@ -37,14 +37,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts',
+    
     # allauth
     'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     
-    #'stores',
+    # Our apps (Mobile Order System)
+    'accounts',
+    'stores',
 ]
 
 SITE_ID = 1

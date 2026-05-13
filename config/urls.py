@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import TemplateView
-from accounts.views import CustomSignupView
+from accounts.views import CustomSignupView, CustomLoginView
 
 # accountsアプリのURLをインクルード
 #from accounts import views as accounts_views
@@ -33,10 +33,16 @@ urlpatterns = [
     path('register/', 
         CustomSignupView.as_view(template_name='admin/A00_register.html'), 
         name='register'),
+    
     # A01 LOGIN
-    path('', LoginView.as_view(template_name='admin/A01_login.html'), name='login'),
+    # path('', LoginView.as_view(template_name='admin/A01_login.html'), name='login'),
+    path('', CustomLoginView.as_view(), name='login'),
+    
+    # A02 STORE REGISTER
+    path('stores/', include('stores.urls')),
     
     path('logout/', LogoutView.as_view(), name='logout'),
+    
     # ログインした後のリダイレクト先を追加
     path('home/', TemplateView.as_view(template_name="home.html"), name='home'),
     

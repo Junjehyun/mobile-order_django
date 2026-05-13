@@ -62,16 +62,18 @@ class CustomUser(AbstractUser):
         help_text='ユーザーの役割'
     )
     
-    # Storeモデルとのリレーション
-    #store = models.ForeignKey(
-    #    'stores.Store',
-    #    on_delete=models.SET_NULL,
-    #    null=True,
-    #    blank=True,
-    #    related_name='users',
-    #    verbose_name='店舗',
-    #    help_text='ユーザーが所属する店舗'
-    #)
+    #Storeモデルとのリレーション
+    store = models.ForeignKey(
+        'stores.Store',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users',
+        verbose_name='店舗',
+        help_text='ユーザーが所属する店舗'
+    )
+    
+    
     objects = CustomUserManager()
     
     # ログイン設定
@@ -92,3 +94,5 @@ class CustomUser(AbstractUser):
         "テンプレートで {{ request.user.get_roles_display }} を使用可能に"
         role_dict = dict(self.roles.choices)
         return role_dict.get(self.roles, self.roles)
+    
+    

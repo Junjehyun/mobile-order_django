@@ -1,0 +1,72 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+    <div class="max-w-2xl w-full">
+
+        <!-- 헤더 -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                店舗基本情報登録
+            </h1>
+            <p class="text-gray-600">
+                ご利用ありがとうございます。<br>
+                店舗の基本情報を登録してください。
+            </p>
+        </div>
+
+        <!-- 폼 전체 -->
+        <form method="post" class="bg-white shadow-xl rounded-3xl p-8 space-y-8">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 text-red-600 p-4 rounded-2xl text-sm">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">
+                        {{ field.label }}
+                        {% if field.field.required %}
+                            <span class="text-red-500">*</span>
+                        {% endif %}
+                    </label>
+                    
+                    {{ field }}
+                    
+                    {% if field.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if field.help_text %}
+                        <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <!-- 버튼 -->
+            <div class="flex gap-4 pt-6">
+                <button type="submit"
+                        class="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-medium py-4 rounded-2xl text-lg transition">
+                    登録する
+                </button>
+                
+                <a href="{% url 'account_login' %}"
+                    class="flex-1 text-center py-4 border border-gray-300 hover:bg-gray-50 font-medium rounded-2xl text-lg transition">
+                    キャンセル
+                </a>
+            </div>
+        </form>
+
+        <div class="text-center mt-8 text-sm text-gray-500">
+            ※ 登録後、すぐにダッシュボードへ移動します
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

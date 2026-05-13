@@ -20,9 +20,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-from django.template.loader import get_template
-t = get_template('account/email_confirmation_sent.html')
-print("사용 중인 템플릿 경로:")
-print(t.origin)
-print("\n템플릿 이름:", t.template.name)
