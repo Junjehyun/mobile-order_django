@@ -41,10 +41,12 @@ urlpatterns = [
     # A02 STORE REGISTER
     path('stores/', include('stores.urls')),
     
-    path('logout/', LogoutView.as_view(), name='logout'),
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     
     # ログインした後のリダイレクト先を追加
-    path('home/', TemplateView.as_view(template_name="home.html"), name='home'),
+    #path('home/', TemplateView.as_view(template_name="home.html"), name='home'),
+    # Storeが登録された場合A03, 登録されていない場合はA02にリダイレクトするURLを追加
+    
     
     path('accounts/', include('allauth.urls')),
     

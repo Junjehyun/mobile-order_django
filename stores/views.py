@@ -21,7 +21,7 @@ class StoreRegistrationView(LoginRequiredMixin, CreateView):
     model = Store # どんなモデルでCreateViewを作るか
     form_class = StoreRegistrationForm # どんなフォームを使うか
     template_name = 'admin/A02_store_register.html' # どのテンプレートを使うか
-    success_url = reverse_lazy('a03_dashboard') # 登録成功後のリダイレクト先 (dashboardに設定)
+    success_url = reverse_lazy('stores:a03_dashboard') # 登録成功後のリダイレクト先 (dashboardに設定)
     
     # アクセス制御
     def dispatch(self, request, *args, **kwargs):
@@ -31,7 +31,7 @@ class StoreRegistrationView(LoginRequiredMixin, CreateView):
         A02はstore_idがNULLの場合のみ表示されるべき
         """
         if request.user.is_authenticated and request.user.store is not None:
-            return redirect('a03_dashboard') # すでにStoreがある場合はA03にリダイレクト
+            return redirect('stores:a03_dashboard') # すでにStoreがある場合はA03にリダイレクト
         
         #storeがないユーザーだけ、A02画面を表示
         return super().dispatch(request, *args, **kwargs)

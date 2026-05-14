@@ -1,0 +1,82 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-100 p-8">
+
+    <h2 class="text-2xl text-center font-bold mb-8">{{ request.user.store.store_name }}　ダッシュボード</h2>
+
+    <!-- 2x2 grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- 1. 本日の売上サマリー -->
+        <div class="bg-white rounded-3xl shadow p-8 border border-violet-300">
+            <h3 class="font-medium text-lg mb-6">本日の売上サマリー</h3>
+            <div class="space-y-8">
+                <div>
+                    <p class="text-sm text-gray-500">売上額</p>
+                    <p class="text-5xl font-bold text-violet-600">-</p>
+                </div>
+                <div class="grid grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-sm text-gray-500">注文数</p>
+                        <p class="text-3xl font-semibold">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">客数</p>
+                        <p class="text-3xl font-semibold">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. テーブル状況 -->
+        <div class="bg-white rounded-3xl shadow p-8 border border-violet-300">
+            <h3 class="font-medium text-lg mb-6">テーブル状況</h3>
+            <div class="grid grid-cols-4 gap-4 text-center">
+                <div class="bg-green-50 rounded-2xl p-6"></div>
+                <div class="bg-orange-50 rounded-2xl p-6"></div>
+                <div class="bg-blue-50 rounded-2xl p-6"></div>
+                <div class="bg-gray-100 rounded-2xl p-6 flex items-center justify-center text-xs text-gray-500">
+                    ※ 色でステータス表示
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 最近の注文 -->
+        <div class="bg-white rounded-3xl shadow p-8 border border-violet-300">
+            <h3 class="font-medium text-lg mb-6">最近の注文</h3>
+            <div class="space-y-6 text-sm">
+                <div class="flex justify-between border-b pb-3"></div>
+                <div class="flex justify-between border-b pb-3"></div>
+                <div class="flex justify-between"></div>
+            </div>
+        </div>
+
+        <!-- 4. クイックアクション -->
+        <div class="bg-white rounded-3xl shadow p-8 border border-violet-300">
+            <h3 class="font-medium text-lg mb-6">クイックアクション</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <a href="#" class="bg-gray-50 hover:bg-violet-50 border border-violet-300 p-8 rounded-2xl text-center transition">テーブル管理</a>
+                <a href="#" class="bg-gray-50 hover:bg-violet-50 border border-violet-300 p-8 rounded-2xl text-center transition">メニュー登録</a>
+                <a href="#" class="bg-gray-50 hover:bg-violet-50 border border-violet-300 p-8 rounded-2xl text-center transition">注文履歴</a>
+                <a href="#" class="bg-gray-50 hover:bg-violet-50 border border-violet-300 p-8 rounded-2xl text-center transition">売上詳細</a>
+            </div>
+        </div>
+    </div>
+    <div class="mt-12 flex justify-center gap-4">
+        <button onclick="location.reload()" 
+                class="px-8 py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-2xl transition">
+            更新
+        </button>
+        
+        <form method="post" action="{% url 'logout' %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+                    class="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-2xl transition">
+                ログアウト
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

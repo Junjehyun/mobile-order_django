@@ -12,10 +12,17 @@
                 ユーザー登録が正常に完了しました！<br>
                 ログイン状態になっています。
             </p>
-            <a href="{% url 'home' %}" 
-                class="block w-full py-5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-2xl text-xl">
-                ホーム画面へ移動
-            </a>
+            {% if request.user.store %}
+                <a href="{% url 'stores:a03_dashboard' %}" 
+                    class="block w-full py-5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-2xl text-xl">
+                    ダッシュボードへ移動
+                </a>
+            {% else %}
+                <a href="{% url 'stores:a02_store_register' %}" 
+                    class="block w-full py-5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-2xl text-xl">
+                    店舗登録へ移動
+                </a>
+            {% endif %}
         </div>
     </div>
 </div>

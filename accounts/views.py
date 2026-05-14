@@ -2,7 +2,7 @@ from allauth.account.views import SignupView
 from django.contrib.auth.views import LoginView
 from django.shortcuts import render
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.urls import reverse
 
 class CustomSignupView(SignupView):
     """
@@ -25,8 +25,8 @@ class CustomSignupView(SignupView):
         """
         user = self.request.user
         if hasattr(user, 'store') and user.store is None:
-            return reverse_lazy('stores:a02_store_register') # A02のURLにリダイレクト
-        return reverse_lazy('a03_dashboard') # A03のURLにリダイレクト
+            return reverse('stores:a02_store_register') # A02のURLにリダイレクト
+        return reverse('stores:a03_dashboard') # A03のURLにリダイレクト
     
 class CustomLoginView(LoginView):
     """
@@ -45,7 +45,7 @@ class CustomLoginView(LoginView):
         
         # storeがないユーザーはA02の店舗登録画面へリダイレクト
         if hasattr(user, 'store') and user.store is None:
-            return reverse_lazy('stores:a02_store_register') # A02のURLにリダイレクト
+            return reverse('stores:a02_store_register') # A02のURLにリダイレクト
         
         # storeがあるユーザーはA03のダッシュボードへリダイレクト
-        #return reverse_lazy('a03_dashboard') # A03のURLにリダイレクト
+        return reverse('stores:a03_dashboard') # A03のURLにリダイレクト
