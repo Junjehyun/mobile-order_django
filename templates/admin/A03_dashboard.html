@@ -43,7 +43,7 @@
                         <p class="text-3xl font-semibold">-</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500">今月客数</p>
+                        <p class="text-sm text-gray-500">客数</p>
                         <p class="text-3xl font-semibold">-</p>
                     </div>
                 </div>
@@ -89,7 +89,6 @@
                 class="px-8 py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-2xl transition">
             更新
         </button>
-        
         <form method="post" action="{% url 'logout' %}" class="inline">
             {% csrf_token %}
             <button type="submit"

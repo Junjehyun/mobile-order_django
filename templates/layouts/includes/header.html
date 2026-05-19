@@ -1,0 +1,59 @@
+{% load static %}
+
+<header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+    <div class="max-w-screen-2xl mx-auto px-6">
+        <div class="h-14 flex items-center justify-between">
+        
+            <!-- Left: ロゴ + タイトル -->
+            <div class="flex items-center gap-3">
+                <div>
+                <span class="font-bold text-xl tracking-tight text-gray-900">モバイルオーダーシステム</span>
+                <span class="text-xs text-gray-500 block -mt-1">管理画面</span>
+                </div>
+            </div>
+
+            <!-- Center: 空欄（後で検索バーなどを追加可能） -->
+            <div class="flex-1 max-w-md mx-8 hidden md:block">
+            </div>
+
+            <!-- Right: ログイン状態表示 -->
+            <div class="flex items-center gap-4">
+                {% if user.is_authenticated %}
+                <!-- ログイン済み -->
+                <div class="flex items-center gap-2">
+                    <div class="text-right">
+                    <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
+                    <p class="text-xs text-gray-500">
+                        {% if user.store %}
+                            {{ user.store.store_name }} • 
+                            {% if user.roles == 'owner' %}オーナー
+                            {% elif user.roles == 'manager' %}マネージャー
+                            {% elif user.roles == 'staff' %}スタッフ
+                        {% endif %}
+                        {% else %}
+                            店舗未登録
+                        {% endif %}
+                    </p>
+                    </div>
+                </div>
+
+                <!-- ログアウト（POST + CSRF） -->
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-2xl transition-colors flex items-center gap-1">
+                    ログアウト
+                    </button>
+                </form>
+
+                {% else %}
+                <!-- 未ログイン -->
+                <a href="{% url 'login' %}" 
+                    class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-gray-900 text-sm font-medium rounded-2xl transition-colors">
+                    ログイン
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</header>
