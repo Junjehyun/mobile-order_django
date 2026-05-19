@@ -99,3 +99,68 @@ class Store(models.Model):
         
     def __str__(self):
         return self.store_name
+    
+    
+class StoreTable(models.Model):
+    """
+    A04 テーブル管理のモデル
+    """
+    class Status(models.TextChoices):
+        VACANT = 'vacant', '空席'
+        OCCUPIED = 'occupied', '使用中'
+        RESERVED = 'reserved', '予約済み'
+    
+    store = models.ForeignKey(
+        'Store',
+        on_delete=models.CASCADE,
+        related_name='tables',
+        verbose_name='店舗'
+    )
+    table_number = models.CharField(
+        max_length=10,
+        verbose_name='テーブル番号',
+        help_text='例: 1, 2, A1, B2など'
+    )
+    table_type = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name='テーブルタイプ',
+        help_text='例: 2人用, 4人用, カウンター'
+    )
+    location = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='位置',
+    )
+    qr_code_url = models.URLField(
+        max_length=250,
+        blank=True,
+        null=True,
+        verbose_name='QRコードURL',
+    )
+    max_seats = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='最大人数',
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.VACANT,
+        verbose_name='ステータス',
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='削除日時')  # Soft Delete
+    
+    class Meta:
+        verbose_name = 'テーブル'
+        verbose_name_plural = 'テーブル一覧'
+        unique_together = ('store', 'table_number')
+        ordering = ['table_number']
+
+    def __str__(self):
+        return f"{self.store.store_name} - {self.table_number}"

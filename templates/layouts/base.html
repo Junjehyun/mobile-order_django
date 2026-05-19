@@ -10,12 +10,23 @@
         {% block extra_css %}{% endblock %}
     </head>
     <body class="bg-gray-50">
+
+        <!-- Header -->
         {% include 'layouts/includes/header.html' %}
-        <main class="min-h-screen">
-            {% block content %}
-            {% endblock %}
-        </main>
-        {% include 'layouts/includes/footer.html' %}
+
+        <div class="flex min-h-screen">
+
+            <!-- Sidebar -->
+            {% include 'layouts/includes/sidebar.html' %}
+
+            <main class="flex-1 p-6 overflow-auto">
+                <!-- Main Content -->
+                {% block content %}
+                <!--各画面からオーバーライド-->
+                {% endblock %}
+            </main>
+
+        </div>
         {% block extra_js %}{% endblock %}
     </body>
 </html>

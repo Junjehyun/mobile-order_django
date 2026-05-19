@@ -8,6 +8,9 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from .models import Store
 from .forms import StoreRegistrationForm #forms.pyからStoreRegistrationFormをインポート
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import StoreTable
 
 class StoreRegistrationView(LoginRequiredMixin, CreateView):
     """
@@ -70,3 +73,68 @@ class StoreRegistrationView(LoginRequiredMixin, CreateView):
         """
         return super().form_invalid(form)
         
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """A03 ダッシュボード画面を処理するViewクラス"""
+    template_name = 'admin/A03_dashboard.html'
+    login_url = 'login'
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        # StoreがないユーザーはA02にリダイレクト
+        if not hasattr(user, 'store') or user.store is None:
+            return redirect('stores:a02_store_register')
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        store = self.request.user.store
+
+        context['store'] = store
+        context['user'] = self.request.user
+
+        tables = StoreTable.objects.filter(
+            store=store,
+            deleted_at__isnull=True
+        )
+
+        context['table_summary'] = {
+            'total': tables.count(),
+            'vacant': tables.filter(status='vacant').count(),
+            'occupied': tables.filter(status='occupied').count(),
+            'reserved': tables.filter(status='reserved').count(),
+        }
+
+        context['tables'] = tables  
+
+        context['recent_orders'] = []
+        context['sales_summary'] = {
+            'today': 0,
+            'order_count_today': 0,
+        }
+
+        return context
+    
+class TableManagementView(LoginRequiredMixin, TemplateView):
+    """A04 テーブル管理画面を処理するViewクラス
+    テーブルの一覧表示、テーブルの状態変更(空席/使用中/予約)を処理
+    """
+    template_name = 'admin/A04_table_management.html'
+    login_url = 'login'
+    
+    def get(self, request, *args, **kwargs):
+        user = request.user 
+        if not hasattr(user, 'store') or user.store is None:
+            return redirect('stores:a02_store_register')
+        return super().get(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        store = self.request.user.store
+        
+        #現在の店舗のテーブルをすべて取得
+        context['tables'] = StoreTable.objects.filter(
+            store = store,
+            deleted_at__isnull=True
+        ).order_by('table_number')
+        
+        return context
