@@ -30,26 +30,19 @@ from allauth.account.views import SignupView
 #ログインとログアウトのURLを追加
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # A00 REGISTER
-    #path('register/', accounts_views.register_view, name='register'),
+    # REGISTER
     path('register/', 
         CustomSignupView.as_view(template_name='admin/A00_register.html'), 
         name='register'),
     
-    # A01 LOGIN
-    # path('', LoginView.as_view(template_name='admin/A01_login.html'), name='login'),
+    # ログイン
     path('', CustomLoginView.as_view(), name='login'),
     
-    # A02 STORE REGISTER
+    # Store関連のURL
     path('stores/', include('stores.urls')),
     
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
-    
-    # ログインした後のリダイレクト先を追加
-    #path('home/', TemplateView.as_view(template_name="home.html"), name='home'),
-    # Storeが登録された場合A03, 登録されていない場合はA02にリダイレクトするURLを追加
-    
-    
+
     path('accounts/', include('allauth.urls')),
     
 ]

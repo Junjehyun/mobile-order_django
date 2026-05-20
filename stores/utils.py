@@ -32,7 +32,7 @@ def generate_qr_code(table):
     img.save(file_path)
     
     #モデルにURLを保存
-    table.qr_code_url = f"{settings.MEDIA_URL}qrcode/{filename}"
+    table.qr_code_url = f"{settings.MEDIA_URL}qrcodes/{filename}"
     table.save()
     
     return table.qr_code_url

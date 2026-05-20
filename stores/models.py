@@ -164,3 +164,9 @@ class StoreTable(models.Model):
 
     def __str__(self):
         return f"{self.store.store_name} - {self.table_number}"
+    
+class MenuCategory(models.Model):
+    """
+    A05 カテゴリー一覧
+    """
+    

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import StoreRegistrationView, DashboardView, TableManagementView, TableCreateView, TableUpdateView, TableDeleteView
+from .views import StoreRegistrationView, DashboardView, TableManagementView, TableCreateView, TableUpdateView, TableDeleteView, CategoryManagementView
 from django.views.generic import TemplateView
 
 app_name = 'stores'
@@ -15,4 +15,5 @@ urlpatterns = [
             path('tables/<int:pk>/update/', TableUpdateView.as_view(), name="a04_table_update"), #A04 テーブル更新のURLパターン
                 path('tables/<int:pk>/delete/', TableDeleteView.as_view(), name='a04_table_delete'),
     #A05 メニューカテゴリー管理画面のURLパターン
+    path('categories/', CategoryManagementView.as_view(), name="a05_category_management")
 ]

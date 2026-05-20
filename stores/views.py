@@ -207,4 +207,13 @@ class TableDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(self.request, 'テーブルを削除しました。')
         return redirect(self.success_url)
     
+class CategoryManagementView(LoginRequiredMixin, TemplateView):
+    """A05 メニューカテゴリー管理画面"""
+    template_name = 'admin/A05_category_management.html'
+    login_url = 'login'
     
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if not hasattr(user, 'store') or user.store is None:
+            return redirect('stores:a02_store_register')
+        return super().get(request, *args, **kwargs)
