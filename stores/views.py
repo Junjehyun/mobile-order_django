@@ -3,14 +3,16 @@ from django.shortcuts import render
 # Create your views here.
 # A02 店舗登録画面のビュー
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView
+from django.views.generic import CreateView, UpdateView, DeleteView
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from .models import Store
-from .forms import StoreRegistrationForm #forms.pyからStoreRegistrationFormをインポート
+from .forms import StoreRegistrationForm, StoreTableForm #forms.pyからStoreRegistrationFormとStoreTableFormをインポート
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import StoreTable
+from django.contrib import messages
+from django.utils import timezone
 
 class StoreRegistrationView(LoginRequiredMixin, CreateView):
     """
@@ -138,3 +140,65 @@ class TableManagementView(LoginRequiredMixin, TemplateView):
         ).order_by('table_number')
         
         return context
+    
+class TableCreateView(LoginRequiredMixin, CreateView):
+    """A04 新規テーブル登録を処理する"""
+    
+    # StoreTableモデルを使用
+    model = StoreTable
+    # StoreTableFormを使用
+    form_class = StoreTableForm
+    template_name = 'admin/A04_table_management.html' #同じA04のモーダルで処理する
+    success_url = reverse_lazy('stores:a04_table_management') #登録成功後はA04にリダイレクト
+    
+    def form_valid(self, form):
+        form.instance.store = self.request.user.store # 現在のユーザーの店舗をテーブルのstoreフィールドに設定
+        messages.success(self.request, 'テーブルを登録しました。') # 登録成功のメッセージを追加
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs) # A04のテーブル管理画面のコンテキストを取得
+        store = self.request.user.store # 現在のユーザーの店舗を取得
+        # 現在の店舗のテーブルをすべて取得して、コンテキストに追加
+        context['tables'] = StoreTable.objects.filter(
+                store=store, deleted_at__isnull=True
+            ).order_by('table_number')
+        return context
+        
+class TableUpdateView(LoginRequiredMixin, UpdateView):
+    """ A04 テーブル編集を処理する """
+    model = StoreTable # 編集対象のモデルはStoreTable
+    form_class = StoreTableForm # StoreTableFormを使用
+    template_name = 'admin/A04_table_management.html' #同じA04のモーダルで処理する
+    success_url = reverse_lazy('stores:a04_table_management') #編集成功後はA04にリダイレクト
+    
+    def get_queryset(self): # 編集対象のクエリセットを制限 (現在のユーザーの店舗のテーブルのみ)
+        
+        # 現在の店舗のテーブルのみ編集可能
+        return StoreTable.objects.filter(store=self.request.user.store, deleted_at__isnull=True)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'テーブルを更新しました。') # 編集成功のメッセージを追加
+        return super().form_valid(form)
+    
+class TableDeleteView(LoginRequiredMixin, DeleteView):
+    """A04 テーブル削除を処理する (論理削除)"""
+    model = StoreTable # 削除対象のモデルはStoreTable
+    success_url = reverse_lazy('stores:a04_table_management') # 削除成功後はA04にリダイレクト
+    
+    # 削除対象のクエリセットを制限 (現在のユーザーの店舗のテーブルのみ)
+    def get_queryset(self):
+        return StoreTable.objects.filter(
+            store=self.request.user.store, # 現在のユーザーの店舗のテーブルのみ削除可能
+            deleted_at__isnull=True # まだ削除されていないテーブルのみ
+        )
+        
+    def form_valid(self, form):
+        # 論理削除のため、delete()をオーバーライドして、deleted_atに現在の日時を設定
+        self.object = self.get_object()
+        self.object.deleted_at = timezone.now()
+        self.object.save()
+        messages.success(self.request, 'テーブルを削除しました。')
+        return redirect(self.success_url)
+    
+    

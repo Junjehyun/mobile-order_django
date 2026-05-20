@@ -1,5 +1,5 @@
 from django import forms
-from .models import Store
+from .models import Store, StoreTable
 
 class StoreRegistrationForm(forms.ModelForm):
     """
@@ -87,3 +87,29 @@ class StoreRegistrationForm(forms.ModelForm):
             'store_id': '英文＋数字で入力(例: S001)',
             'table_count': '店舗のテーブル数',
         }
+        
+class StoreTableForm(forms.ModelForm):
+    """
+    テーブル管理フォーム(StoreTableモデルに基づく)
+    """
+    class Meta:
+        # StoreTableモデルをフォームのベースにする
+        model = StoreTable
+        # A04に表示するフィールドを指定
+        fields = ['table_number', 'table_type', 'location', 'max_seats']
+        # 各FieldのWidgetを定義
+        widgets = {
+            'table_number': forms.TextInput(attrs={'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl'}),
+            'table_type': forms.TextInput(attrs={'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl'}),
+            'location': forms.TextInput(attrs={'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl'}),
+            'max_seats': forms.NumberInput(attrs={'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl'}),
+            #'status': forms.Select(attrs={'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl'}),
+        }
+        labels = {
+            'table_number': 'テーブル番号',
+            'table_type': 'テーブルタイプ',
+            'location': '位置',
+            'max_seats': '最大人数',
+            #'status': 'ステータス',
+        }
+        
