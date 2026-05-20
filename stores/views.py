@@ -153,8 +153,11 @@ class TableCreateView(LoginRequiredMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.store = self.request.user.store # 現在のユーザーの店舗をテーブルのstoreフィールドに設定
+        instance = form.save()
+        from .utils import generate_qr_code
+        generate_qr_code(instance)
         messages.success(self.request, 'テーブルを登録しました。') # 登録成功のメッセージを追加
-        return super().form_valid(form)
+        return redirect(self.success_url)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs) # A04のテーブル管理画面のコンテキストを取得
@@ -178,8 +181,11 @@ class TableUpdateView(LoginRequiredMixin, UpdateView):
         return StoreTable.objects.filter(store=self.request.user.store, deleted_at__isnull=True)
     
     def form_valid(self, form):
-        messages.success(self.request, 'テーブルを更新しました。') # 編集成功のメッセージを追加
-        return super().form_valid(form)
+        instance = form.save()
+        from .utils import generate_qr_code
+        generate_qr_code(instance)                # QRコード再生成
+        messages.success(self.request, 'テーブル情報を更新しました。QRコードも更新されました。')
+        return redirect(self.success_url)
     
 class TableDeleteView(LoginRequiredMixin, DeleteView):
     """A04 テーブル削除を処理する (論理削除)"""
