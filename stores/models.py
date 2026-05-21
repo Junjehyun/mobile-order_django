@@ -169,4 +169,45 @@ class MenuCategory(models.Model):
     """
     A05 カテゴリー一覧
     """
+    store = models.ForeignKey(
+        'Store',
+        on_delete=models.CASCADE,
+        related_name='categories',
+        verbose_name='店舗'
+    )
     
+    name = models.CharField(
+        max_length=50,
+        verbose_name='カテゴリー名'
+    )
+    
+    name_en = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='英文名'
+    )
+    
+    display_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name='表示順'
+    )
+    icon_image_url = models.URLField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name='アイコン画像URL'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='削除日時')  # Soft Delete
+    
+    class Meta:
+        verbose_name = 'メニューカテゴリー'
+        verbose_name_plural = 'メニューカテゴリー一覧'
+        ordering = ['display_order', 'name']
+        #unique_together = ('store', 'name')  # 同じ店舗で同じ名重複防止
+
+    def __str__(self):
+        return f"{self.store.store_name} - {self.name}"

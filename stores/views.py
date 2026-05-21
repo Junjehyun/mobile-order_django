@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 # A02 店舗登録画面のビュー
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from .models import Store
@@ -13,6 +13,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import StoreTable
 from django.contrib import messages
 from django.utils import timezone
+from .models import MenuCategory
+from .forms import MenuCategoryForm
+from django.conf import settings
 
 class StoreRegistrationView(LoginRequiredMixin, CreateView):
     """
@@ -217,3 +220,98 @@ class CategoryManagementView(LoginRequiredMixin, TemplateView):
         if not hasattr(user, 'store') or user.store is None:
             return redirect('stores:a02_store_register')
         return super().get(request, *args, **kwargs)
+
+class CategoryManagementView(LoginRequiredMixin, ListView):
+    """A05 メニューカテゴリー 管理画面"""
+    model = MenuCategory
+    template_name = 'admin/A05_category_management.html'
+    context_object_name = 'categories'
+    login_url = 'login'
+    
+    def get_queryset(self):
+        if not hasattr(self.request.user, 'store') or self.request.user.store is None:
+            return MenuCategory.objects.none()
+        return MenuCategory.objects.filter(
+                store=self.request.user.store,
+                deleted_at__isnull=True
+            ).order_by('display_order', 'name')
+        
+    def get(self, request, *args, **kwargs):
+        if not hasattr(request.user, 'store') or request.user.store is None:
+            return redirect('stores:a02_store_register')
+        return super().get(request, *args, **kwargs)
+    
+
+class CategoryCreateView(LoginRequiredMixin, CreateView):
+    """A05 新規カテゴリー登録 """
+    model = MenuCategory
+    form_class = MenuCategoryForm
+    template_name = 'admin/A05_category_management.html'
+    success_url = reverse_lazy('stores:a05_category_management')
+    
+    def form_valid(self, form):
+        form.instance.store = self.request.user.store
+        icon_image = form.cleaned_data.get('icon_image')
+        if icon_image:
+            from django.core.files.storage import default_storage
+            from django.core.files.base import ContentFile
+            import os
+            
+            folder = f"categories/{form.instance.store.store_id}/"
+            filename = f"icon_{form.instance.name}_{icon_image.name}"
+            path = default_storage.save(folder + filename, ContentFile(icon_image.read()))
+            form.instance.icon_image_url = f"{settings.MEDIA_URL}{path}"
+        messages.success(self.request, 'カテゴリーを登録しました。')
+        return super().form_valid(form)
+        
+class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+    """A05 カテゴリー修正"""
+    model = MenuCategory
+    form_class = MenuCategoryForm
+    template_name = 'admin/A05_category_management.html'
+    success_url = reverse_lazy('stores:a05_category_management')
+    
+    def get_queryset(self):
+        return MenuCategory.objects.filter(
+            store=self.request.user.store,
+            deleted_at__isnull=True
+        )
+        
+    def form_valid(self, form):
+        instance = form.save(commit=False)
+        
+        icon_image = form.cleaned_data.get('icon_image')
+        if icon_image:
+            from django.core.files.storage import default_storage
+            from django.core.files.base import ContentFile
+            import os
+            
+            folder = f"categories/{instance.store.store_id}/"
+            filename = f"icon_{instance.name}_{icon_image.name}"
+            path = default_storage.save(folder + filename, ContentFile(icon_image.read()))
+            instance.icon_image_url = f"{settings.MEDIA_URL}{path}"
+        
+        instance.save()
+        messages.success(self.request, 'カテゴリー情報を更新しました。')
+        return redirect(self.success_url)
+    
+    
+class CategoryDeleteView(LoginRequiredMixin, DeleteView):
+    """A05 カテゴリー削除(Soft Delete)"""
+    model = MenuCategory
+    success_url = reverse_lazy('stores:a05_category_management')
+    
+    def get_queryset(self):
+        return MenuCategory.objects.filter(
+            store=self.request.user.store,
+            deleted_at__isnull=True
+        )
+        
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.deleted_at = timezone.now()
+        self.object.save()
+        messages.success(request, 'カテゴリーを削除しました。')
+        return redirect(self.success_url)
+        
+    

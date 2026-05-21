@@ -1,5 +1,5 @@
 from django import forms
-from .models import Store, StoreTable
+from .models import Store, StoreTable, MenuCategory
 
 class StoreRegistrationForm(forms.ModelForm):
     """
@@ -113,3 +113,37 @@ class StoreTableForm(forms.ModelForm):
             #'status': 'ステータス',
         }
         
+class MenuCategoryForm(forms.ModelForm):
+    """
+    カテゴリー管理フォーム(StoreTableモデルに基づく)
+    """
+    icon_image = forms.ImageField(
+        required=False,
+        label='アイコン画像',
+        widget=forms.FileInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400'
+        })
+    )
+    
+    class Meta:
+        model = MenuCategory
+        fields = ['name', 'name_en', 'icon_image_url', 'display_order']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'placeholder': '例: メイン料理'
+            }),
+            'name_en': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'placeholder': '例: Main Course'
+            }),
+            'display_order': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400'
+            }),
+        }
+        labels = {
+            'name': 'カテゴリー名',
+            'name_en': '英文名',
+            'icon_image_url': 'アイコン画像URL',
+            'display_order': '表示順',
+        }
