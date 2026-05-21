@@ -127,7 +127,7 @@ class MenuCategoryForm(forms.ModelForm):
     
     class Meta:
         model = MenuCategory
-        fields = ['name', 'name_en', 'icon_image_url', 'display_order']
+        fields = ['name', 'name_en', 'display_order']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
@@ -144,6 +144,5 @@ class MenuCategoryForm(forms.ModelForm):
         labels = {
             'name': 'カテゴリー名',
             'name_en': '英文名',
-            'icon_image_url': 'アイコン画像URL',
             'display_order': '表示順',
         }
