@@ -16,6 +16,9 @@ from django.utils import timezone
 from .models import MenuCategory
 from .forms import MenuCategoryForm
 from django.conf import settings
+from django.db import models
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 class StoreRegistrationView(LoginRequiredMixin, CreateView):
     """
@@ -279,6 +282,22 @@ class CategoryUpdateView(LoginRequiredMixin, UpdateView):
         
     def form_valid(self, form):
         instance = form.save(commit=False)
+        
+        old_order = instance.display_order
+        new_order = form.cleaned_data.get('display_order')
+        
+        if old_order != new_order and new_order is not None:
+            qs = MenuCategory.objects.filter(
+                store=self.request.user.store,
+                deleted_at__isnull=True
+            )
+
+            if new_order < old_order:
+                qs.filter(display_order__gte=new_order, display_order__lt=old_order)\
+                .update(display_order=models.F('display_order') + 1)
+            else:
+                qs.filter(display_order__gt=old_order, display_order__lte=new_order)\
+                .update(display_order=models.F('display_order') - 1)
         
         icon_image = form.cleaned_data.get('icon_image')
         if icon_image:
