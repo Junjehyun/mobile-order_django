@@ -1,0 +1,160 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-100 p-8">
+
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold">メニュー管理</h2>
+        
+        <!-- 新規登録ボタン -->
+        <button onclick="showCreateModal()"
+                class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl flex items-center gap-2 transition">
+            <span class="text-xl">+</span>
+            新規メニュー登録
+        </button>
+    </div>
+
+    <!-- メニュー一覧 -->
+    <div class="bg-white rounded-3xl shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b">
+                <tr class="text-left text-sm text-gray-500">
+                    <th class="px-8 py-5 font-medium">カテゴリー</th>
+                    <th class="px-8 py-5 font-medium">メニュー名</th>
+                    <th class="px-8 py-5 font-medium">価格</th>
+                    <th class="px-8 py-5 font-medium text-center">販売可否</th>
+                    <th class="px-8 py-5 font-medium text-center">売切状態</th>
+                    <th class="px-8 py-5 font-medium text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y" id="menuTableBody">
+                <!-- Step 5에서 {% for menu in menus %} 루프로 채워질 예정 -->
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-8 py-12 text-center text-gray-400">
+                        まだメニューが登録されていません<br>
+                        「新規メニュー登録」ボタンから追加してください
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="menuModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg mx-4">
+            <div class="px-8 pt-6 pb-4">
+                <h3 id="modalTitle" class="text-2xl font-bold mb-6">新規メニュー登録</h3>
+                
+                <form id="menuForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" id="menuId" name="id" value="">
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">カテゴリー <span class="text-red-500">*</span></label>
+                            <select id="category_id" name="category" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">メニュー名 <span class="text-red-500">*</span></label>
+                            <input type="text" id="name" name="name" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">英文名</label>
+                            <input type="text" id="name_en" name="name_en" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">価格 (円) <span class="text-red-500">*</span></label>
+                            <input type="number" id="price" name="price" step="1" min="0"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">説明</label>
+                            <textarea id="description" name="description" rows="3"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">代表イメージ</label>
+                            <input type="file" id="image" name="image" accept="image/*"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400">
+                        </div>
+
+                        <div class="flex items-center gap-8">
+                            <div class="flex items-center gap-3">
+                                <label class="text-sm text-gray-500">販売可否</label>
+                                <input type="checkbox" id="is_available" name="is_available" checked class="w-5 h-5 accent-orange-500">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <label class="text-sm text-gray-500">売切状態</label>
+                                <input type="checkbox" id="is_sold_out" name="is_sold_out" class="w-5 h-5 accent-orange-500">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="border-t px-8 py-5 flex gap-3">
+                <button onclick="hideModal()" 
+                        class="flex-1 py-4 text-gray-600 font-medium border border-gray-300 rounded-2xl hover:bg-gray-50">
+                    キャンセル
+                </button>
+                <button onclick="saveMenu()" 
+                        class="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl">
+                    保存する
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showCreateModal() {
+    document.getElementById('modalTitle').textContent = '新規メニュー登録';
+    document.getElementById('menuForm').reset();
+    document.getElementById('menuId').value = '';
+    document.getElementById('menuModal').classList.remove('hidden');
+}
+
+function editMenu(id) {
+    document.getElementById('modalTitle').textContent = 'メニュー編集';
+    document.getElementById('menuId').value = id;
+    document.getElementById('menuModal').classList.remove('hidden');
+}
+
+function hideModal() {
+    document.getElementById('menuModal').classList.add('hidden');
+}
+
+function saveMenu() {
+    const form = document.getElementById('menuForm');
+    form.submit();
+}
+
+function deleteMenu(id) {
+    if (confirm('このメニューを削除しますか？')) {
+        const form = document.createElement('form');
+        form.method = 'post';
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrfmiddlewaretoken';
+        csrf.value = '{{ csrf_token }}';
+        form.appendChild(csrf);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+
+{% endblock %}

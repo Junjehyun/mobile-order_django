@@ -167,7 +167,7 @@ class StoreTable(models.Model):
     
 class MenuCategory(models.Model):
     """
-    A05 カテゴリー一覧
+    A05 カテゴリー
     """
     store = models.ForeignKey(
         'Store',
@@ -211,3 +211,85 @@ class MenuCategory(models.Model):
 
     def __str__(self):
         return f"{self.store.store_name} - {self.name}"
+    
+class Menu(models.Model):
+    """
+        A06 メニュー
+    """
+    # FK - Storeと連結
+    store = models.ForeignKey(
+        'Store',
+        on_delete=models.CASCADE,
+        related_name='menus', 
+        verbose_name='店舗'
+    )
+    
+    # FK - メニューが属するカテゴリー(A05)
+    category = models.ForeignKey(
+        'MenuCategory',
+        on_delete=models.CASCADE,
+        related_name='menus',
+        verbose_name='カテゴリー'
+        
+    )
+    
+    # 基本情報
+    name = models.CharField(
+        max_length=100,
+        verbose_name='メニュー名'
+    )
+    
+    name_en = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name='英文名'
+    )
+    
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='価格'
+    )
+    
+    description = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='説明'
+    )
+    
+    allergy_info = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name='アレルギー情報'
+    )
+    
+    image_url = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name='代表イメージURL'
+    )
+    
+    is_available = models.BooleanField(
+        default=True,
+        verbose_name='販売可否'
+    )
+    
+    is_sold_out = models.BooleanField(
+        default=False,
+        verbose_name='売切状態'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='削除日時')  # Soft Delete
+    
+    class Meta:
+        verbose_name = 'メニュー',
+        verbose_name_plural = 'メニュー一覧',
+        ordering = ['category__display_order', 'name']
+        
+    def __str__(self):
+        return f"{self.name} ({self.price}円)"

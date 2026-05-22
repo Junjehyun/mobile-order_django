@@ -1,5 +1,5 @@
 from django import forms
-from .models import Store, StoreTable, MenuCategory
+from .models import Store, StoreTable, MenuCategory, Menu
 
 class StoreRegistrationForm(forms.ModelForm):
     """
@@ -146,3 +146,78 @@ class MenuCategoryForm(forms.ModelForm):
             'name_en': '英文名',
             'display_order': '表示順',
         }
+        
+class MenuForm(forms.ModelForm):
+    """
+        A06メニュー登録・修正フォーム
+    """
+    class Meta:
+        model = Menu
+        
+        fields = [
+            'category',
+            'name',
+            'name_en',
+            'price',
+            'description',
+            'allergy_info',
+            'is_available',
+            'is_sold_out',
+            # img_urlはファイルアップロードのため、Viewで処理する。
+        ]
+        
+        labels = {
+            'category': 'カテゴリー',
+            'name': 'メニュー名',
+            'name_en': '英文名',
+            'price': '価格 (円)',
+            'description': '説明',
+            'allergy_info': 'アレルギー情報',
+            'is_available': '販売可否',
+            'is_sold_out': '売切状態',
+        }
+        
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'placeholder': '例: 特製ラーメン'
+            }),
+            'name_en': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'placeholder': 'Example: Special Ramen'
+            }),
+            'price': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'step': '1',
+                'min': '0'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'rows': 3,
+                'placeholder': '商品の説明を入力してください'
+            }),
+            'allergy_info': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'placeholder': '例: 小麦・卵・乳製品'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400'
+            }),
+        }
+        
+        field_classes = {
+            'is_available': forms.BooleanField,
+            'is_sold_out': forms.BooleanField
+        }
+        
+    def __init__(self, *args, **kwargs):
+        """
+        フォームの初期化時点でstoreごとのカテゴリーだけ表示することにquerysetを制限
+        """
+        super().__init__(*args, **kwargs)
+        if self.store:
+            self.fields['category'].queryset = self.store.categories.filter(
+            deleted_at__isnull=True
+        ).order_by('display_order', 'name')
+        
+        

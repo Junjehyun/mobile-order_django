@@ -334,3 +334,26 @@ class CategoryDeleteView(LoginRequiredMixin, DeleteView):
         return redirect(self.success_url)
         
     
+#A06
+class MenuManagementView(LoginRequiredMixin, TemplateView):
+    """
+        A06メニュー管理画面
+    """
+    template_name = 'admin/A06_menu_management.html'
+    
+    def get(self, request, *args, **kwargs):
+        if not hasattr(request.user, 'store') or request.user.store is None:
+            messages.error(request, '店舗情報が登録されていません。まず店舗基本情報を登録してください。')
+            return redirect('stores:a02_store_register') 
+        
+        return super().get(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'メニュー管理'
+        context['current_page'] = 'menus'
+        return context
+    
+#class MenuCreateView(LoginRequiredMixin, CreateView):
+#class MenuUpdateView(LoginRequiredMixin, UpdateView):
+#class MenuDeleteView(LoginRequiredMixin, DeleteView):

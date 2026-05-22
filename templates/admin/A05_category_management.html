@@ -115,13 +115,6 @@
 </div>
 
 <script>
-/* 
-   A05 JS 설명
-   - showCreateModal()     → 신규 등록 모달
-   - editCategory(id)      → 수정 모달 + 기존 데이터 채우기 (수정 완료)
-   - saveCategory()        → 등록 / 수정 전송
-   - deleteCategory(id)    → 삭제
-*/
 
 function showCreateModal() {
     document.getElementById('modalTitle').textContent = '新規カテゴリー登録';
@@ -139,12 +132,10 @@ function editCategory(id) {
 
     const row = document.querySelector(`tr[data-id="${id}"]`);
     if (row) {
-        // cells 인덱스 수정 (테이블 구조에 맞춤)
         document.getElementById('name').value = row.cells[0].textContent.trim();
         document.getElementById('name_en').value = row.cells[1].textContent.trim() === '-' ? '' : row.cells[1].textContent.trim();
         document.getElementById('display_order').value = row.cells[3].textContent.trim();
 
-        // 아이콘 미리보기 (있으면 표시)
         const iconCell = row.cells[2];
         const img = iconCell.querySelector('img');
         if (img) {
