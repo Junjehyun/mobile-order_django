@@ -1,5 +1,19 @@
 from django.urls import path
-from .views import StoreRegistrationView, DashboardView, TableManagementView, TableCreateView, TableUpdateView, TableDeleteView, CategoryManagementView, CategoryCreateView, CategoryUpdateView, CategoryDeleteView
+from .views import (
+    StoreRegistrationView, 
+    DashboardView, 
+    TableManagementView, 
+    TableCreateView, 
+    TableUpdateView, 
+    TableDeleteView, 
+    CategoryManagementView, 
+    CategoryCreateView, 
+    CategoryUpdateView, 
+    CategoryDeleteView,
+    MenuCreateView,
+    MenuUpdateView,
+    MenuDeleteView,
+)
 from django.views.generic import TemplateView
 from .views import MenuManagementView
 
@@ -25,4 +39,7 @@ urlpatterns = [
     path('categories/<int:pk>/delete/', CategoryDeleteView.as_view(), name='a05_category_delete'),
     #A06 メニュー管理
     path('menus/', MenuManagementView.as_view(), name='a06_menu_management'),
+    path('menus/create/', MenuCreateView.as_view(), name='a06_menu_create'),
+    path('menus/<int:pk>/update/', MenuUpdateView.as_view(), name='a06_menu_update'),
+    path('menus/<int:pk>/delete/', MenuDeleteView.as_view(), name='a06_menu_delete'),
 ]

@@ -6,7 +6,6 @@
     <div class="flex justify-between items-center mb-8">
         <h2 class="text-3xl font-bold">メニュー管理</h2>
         
-        <!-- 新規登録ボタン -->
         <button onclick="showCreateModal()"
                 class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl flex items-center gap-2 transition">
             <span class="text-xl">+</span>
@@ -14,7 +13,6 @@
         </button>
     </div>
 
-    <!-- メニュー一覧 -->
     <div class="bg-white rounded-3xl shadow overflow-hidden">
         <table class="w-full">
             <thead class="bg-gray-50 border-b">
@@ -27,8 +25,36 @@
                     <th class="px-8 py-5 font-medium text-center">操作</th>
                 </tr>
             </thead>
-            <tbody class="divide-y" id="menuTableBody">
-                <!-- Step 5에서 {% for menu in menus %} 루프로 채워질 예정 -->
+            <tbody class="divide-y">
+                {% for menu in menus %}
+                <tr class="hover:bg-gray-50 transition" 
+                    data-id="{{ menu.id }}"
+                    data-category-id="{{ menu.category.id }}"
+                    data-name="{{ menu.name }}"
+                    data-name-en="{{ menu.name_en|default:'' }}"
+                    data-price="{{ menu.price }}"
+                    data-description="{{ menu.description|default:'' }}"
+                    data-allergy-info="{{ menu.allergy_info|default:'' }}"
+                    data-is-available="{{ menu.is_available|yesno:'true,false' }}"
+                    data-is-sold-out="{{ menu.is_sold_out|yesno:'true,false' }}">
+                    <td class="px-8 py-6 font-medium">{{ menu.category.name }}</td>
+                    <td class="px-8 py-6">{{ menu.name }}</td>
+                    <td class="px-8 py-6">{{ menu.price }}円</td>
+                    <td class="px-8 py-6 text-center">
+                        <span class="px-3 py-1 text-xs rounded-full {% if menu.is_available %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                            {{ menu.is_available|yesno:"販売中,販売停止" }}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        <span class="px-3 py-1 text-xs rounded-full {% if menu.is_sold_out %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                            {{ menu.is_sold_out|yesno:"売切,販売中" }}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        <button onclick="editMenu({{ menu.id }})" class="text-blue-600 hover:text-blue-700 mr-4">編集</button>
+                        <button onclick="deleteMenu({{ menu.id }})" class="text-red-600 hover:text-red-700">削除</button>
+                    </td>
+                </tr>
                 {% empty %}
                 <tr>
                     <td colspan="6" class="px-8 py-12 text-center text-gray-400">
@@ -53,39 +79,43 @@
                     <div class="space-y-6">
                         <div>
                             <label class="block text-sm text-gray-500 mb-1">カテゴリー <span class="text-red-500">*</span></label>
-                            <select id="category_id" name="category" 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                            <select id="category_id" name="category" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
 
                         <div>
                             <label class="block text-sm text-gray-500 mb-1">メニュー名 <span class="text-red-500">*</span></label>
-                            <input type="text" id="name" name="name" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                            <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
                         </div>
 
                         <div>
                             <label class="block text-sm text-gray-500 mb-1">英文名</label>
-                            <input type="text" id="name_en" name="name_en" 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400">
+                            <input type="text" id="name_en" name="name_en" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400">
                         </div>
 
                         <div>
                             <label class="block text-sm text-gray-500 mb-1">価格 (円) <span class="text-red-500">*</span></label>
-                            <input type="number" id="price" name="price" step="1" min="0"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                            <input type="number" id="price" name="price" step="1" min="0" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">アレルギー情報</label>
+                            <input type="text" id="allergy_info" name="allergy_info" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400"
+                                placeholder="例: 小麦・卵・乳製品">
                         </div>
 
                         <div>
                             <label class="block text-sm text-gray-500 mb-1">説明</label>
-                            <textarea id="description" name="description" rows="3"
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400"></textarea>
+                            <textarea id="description" name="description" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400"></textarea>
                         </div>
 
                         <div>
                             <label class="block text-sm text-gray-500 mb-1">代表イメージ</label>
-                            <input type="file" id="image" name="image" accept="image/*"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400">
+                            <input type="file" id="image" name="image" accept="image/*" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400">
                         </div>
 
                         <div class="flex items-center gap-8">
@@ -103,14 +133,8 @@
             </div>
 
             <div class="border-t px-8 py-5 flex gap-3">
-                <button onclick="hideModal()" 
-                        class="flex-1 py-4 text-gray-600 font-medium border border-gray-300 rounded-2xl hover:bg-gray-50">
-                    キャンセル
-                </button>
-                <button onclick="saveMenu()" 
-                        class="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl">
-                    保存する
-                </button>
+                <button onclick="hideModal()" class="flex-1 py-4 text-gray-600 font-medium border border-gray-300 rounded-2xl hover:bg-gray-50">キャンセル</button>
+                <button onclick="saveMenu()" class="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl">保存する</button>
             </div>
         </div>
     </div>
@@ -122,12 +146,28 @@ function showCreateModal() {
     document.getElementById('modalTitle').textContent = '新規メニュー登録';
     document.getElementById('menuForm').reset();
     document.getElementById('menuId').value = '';
+    document.getElementById('menuForm').action = "{% url 'stores:a06_menu_create' %}";
     document.getElementById('menuModal').classList.remove('hidden');
 }
 
 function editMenu(id) {
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (!row) return;
+
     document.getElementById('modalTitle').textContent = 'メニュー編集';
     document.getElementById('menuId').value = id;
+    document.getElementById('menuForm').action = "{% url 'stores:a06_menu_update' 0 %}".replace('0', id);
+
+    document.getElementById('category_id').value = row.dataset.categoryId;
+    document.getElementById('name').value = row.dataset.name;
+    document.getElementById('name_en').value = row.dataset.nameEn || '';
+    document.getElementById('price').value = row.dataset.price;
+    document.getElementById('allergy_info').value = row.dataset.allergyInfo || '';
+    document.getElementById('description').value = row.dataset.description || '';
+    
+    document.getElementById('is_available').checked = row.dataset.isAvailable === 'true';
+    document.getElementById('is_sold_out').checked = row.dataset.isSoldOut === 'true';
+
     document.getElementById('menuModal').classList.remove('hidden');
 }
 
@@ -144,6 +184,7 @@ function deleteMenu(id) {
     if (confirm('このメニューを削除しますか？')) {
         const form = document.createElement('form');
         form.method = 'post';
+        form.action = "{% url 'stores:a06_menu_delete' 0 %}".replace('0', id);
         
         const csrf = document.createElement('input');
         csrf.type = 'hidden';

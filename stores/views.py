@@ -10,11 +10,11 @@ from .models import Store
 from .forms import StoreRegistrationForm, StoreTableForm #forms.pyからStoreRegistrationFormとStoreTableFormをインポート
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import StoreTable
+from .models import StoreTable, Menu
 from django.contrib import messages
 from django.utils import timezone
 from .models import MenuCategory
-from .forms import MenuCategoryForm
+from .forms import MenuCategoryForm, MenuForm
 from django.conf import settings
 from django.db import models
 from django.core.files.storage import default_storage
@@ -335,25 +335,116 @@ class CategoryDeleteView(LoginRequiredMixin, DeleteView):
         
     
 #A06
-class MenuManagementView(LoginRequiredMixin, TemplateView):
+class MenuManagementView(LoginRequiredMixin, ListView):
     """
         A06メニュー管理画面
     """
+    model = Menu
     template_name = 'admin/A06_menu_management.html'
+    context_object_name = 'menus'
+    login_url = 'login'
     
     def get(self, request, *args, **kwargs):
         if not hasattr(request.user, 'store') or request.user.store is None:
             messages.error(request, '店舗情報が登録されていません。まず店舗基本情報を登録してください。')
             return redirect('stores:a02_store_register') 
-        
         return super().get(request, *args, **kwargs)
     
+    def get_queryset(self):
+        return Menu.objects.filter(
+            store=self.request.user.store,
+            deleted_at__isnull=True
+        ).select_related('category').order_by('category__display_order', 'name')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'メニュー管理'
         context['current_page'] = 'menus'
+        context['categories'] = self.request.user.store.categories.filter(
+            deleted_at__isnull=True
+        ).order_by('display_order', 'name')
         return context
     
-#class MenuCreateView(LoginRequiredMixin, CreateView):
-#class MenuUpdateView(LoginRequiredMixin, UpdateView):
-#class MenuDeleteView(LoginRequiredMixin, DeleteView):
+class MenuCreateView(LoginRequiredMixin, CreateView):
+    model = Menu
+    form_class = MenuForm
+    template_name = 'admin/a06_menu_management.html'
+    success_url = reverse_lazy('stores:a06_menu_management')
+    
+    def get(self, request, *args, **kwargs):
+        if not hasattr(request.user, 'store') or request.user.store is None:
+            messages.error(request, '店舗情報が登録されていません。')
+            return redirect('stores:a02_store_register')
+        return super().get(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        """Image Upload & Connecting Store & Success Message"""
+        menu = form.save(commit=False)
+        menu.store = self.request.user.store
+        
+        # Image File 
+        image = self.request.FILES.get('image')
+        if image:
+            folder = f"meus/{menu.store.store_id}/"
+            filename = f"menu_{menu.name}_{image.name}"
+            path = default_storage.save(folder + filename, ContentFile(image.read()))
+            menu.image_url = f"{settings.MEDIA_URL}{path}"
+            
+        menu.save()
+        messages.success(self.request, 'メニューを登録しました。')
+        return redirect(self.success_url)
+    
+    def get_form_kwargs(self):
+        return super().get_form_kwargs()
+        kwargs['store'] = self.request.user.store
+        return self.kwargs
+        
+class MenuUpdateView(LoginRequiredMixin, UpdateView):
+    """Menu Edit"""
+    model = Menu
+    form_class = MenuForm
+    template_name = 'admin/A06_menu_management.html'
+    success_url = reverse_lazy('stores:a06_menu_management')
+
+    def get_queryset(self):
+        return Menu.objects.filter(
+            store=self.request.user.store,
+            deleted_at__isnull=True
+        )
+
+    def form_valid(self, form):
+        menu = form.save(commit=False)
+        
+        image = self.request.FILES.get('image')
+        if image:
+            folder = f"menus/{menu.store.store_id}/"
+            filename = f"menu_{menu.name}_{image.name}"
+            path = default_storage.save(folder + filename, ContentFile(image.read()))
+            menu.image_url = f"{settings.MEDIA_URL}{path}"
+        
+        menu.save()
+        messages.success(self.request, 'メニュー情報を更新しました。')
+        return redirect(self.success_url)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['store'] = self.request.user.store
+        return kwargs
+    
+class MenuDeleteView(LoginRequiredMixin, DeleteView):
+    """Menu Delete"""
+    model = Menu
+    success_url = reverse_lazy('stores:a06_menu_management')
+
+    def get_queryset(self):
+        return Menu.objects.filter(
+            store=self.request.user.store,
+            deleted_at__isnull=True
+        )
+
+    def form_valid(self, form):
+        self.object = self.get_object()
+        self.object.deleted_at = timezone.now()   # Soft Delete
+        self.object.save()
+        messages.success(self.request, 'メニューを削除しました。')
+        return redirect(self.success_url)

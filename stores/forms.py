@@ -214,6 +214,8 @@ class MenuForm(forms.ModelForm):
         """
         フォームの初期化時点でstoreごとのカテゴリーだけ表示することにquerysetを制限
         """
+        self.store = kwargs.pop('store', None)
+        
         super().__init__(*args, **kwargs)
         if self.store:
             self.fields['category'].queryset = self.store.categories.filter(
