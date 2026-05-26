@@ -448,3 +448,43 @@ class MenuDeleteView(LoginRequiredMixin, DeleteView):
         self.object.save()
         messages.success(self.request, 'メニューを削除しました。')
         return redirect(self.success_url)
+
+#A07    
+class OptionGroupManagementView(LoginRequiredMixin, TemplateView):
+    """A07 メニューオプショングループ管理 一覧画面"""
+    template_name = 'admin/A07_option_group_management.html'
+    login_url = 'login'
+    
+    def get(self, request, *args, **kwargs):
+        """기존 A05/A06과 동일한 store 체크 로직"""
+        user = request.user
+        if not hasattr(user, 'store') or user.store is None:
+            return redirect('stores:a02_store_register')
+        return super().get(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        store = self.request.user.store
+        context['title'] = 'メニューオプショングループ管理'
+        # Model 아직 없으므로 placeholder
+        context['option_groups'] = []  
+        return context
+
+
+class OptionGroupCreateView(LoginRequiredMixin, TemplateView):
+    """A07 新規オプショングループ登録 (모달용)"""
+    def get(self, request, *args, **kwargs):
+        return HttpResponse("A07 新規登録モーダル - 準備中 (기존 modal 패턴)")
+
+
+class OptionGroupUpdateView(LoginRequiredMixin, TemplateView):
+    """A07 オプショングループ編集 (모달용)"""
+    def get(self, request, *args, **kwargs):
+        return HttpResponse("A07 編集モーダル - 準備中")
+
+
+class OptionGroupDeleteView(LoginRequiredMixin, TemplateView):
+    """A07 オプショングループ削除"""
+    def post(self, request, *args, **kwargs):
+        messages.success(request, 'オプショングループを削除しました。')
+        return redirect('stores:a07_option_group_management')

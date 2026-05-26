@@ -1,0 +1,183 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-100 p-8">
+
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold">メニューオプショングループ管理</h2>
+        
+        <!-- 新規登録ボタン -->
+        <button onclick="showCreateModal()"
+                class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl flex items-center gap-2 transition">
+            <span class="text-xl">+</span>
+            新規オプショングループ登録
+        </button>
+    </div>
+
+    <!-- オプショングループ一覧 -->
+    <div class="bg-white rounded-3xl shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b">
+                <tr class="text-left text-sm text-gray-500">
+                    <th class="px-8 py-5 font-medium">対象メニュー</th>
+                    <th class="px-8 py-5 font-medium">グループ名</th>
+                    <th class="px-8 py-5 font-medium">選択方法</th>
+                    <th class="px-8 py-5 font-medium text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y" id="optionGroupTableBody">
+                {% for group in option_groups %}
+                <tr class="hover:bg-gray-50 transition" data-id="{{ group.id }}">
+                    <td class="px-8 py-6 font-medium">{{ group.menu.name }}</td>
+                    <td class="px-8 py-6">{{ group.name }}</td>
+                    <td class="px-8 py-6">
+                        <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                            {{ group.selection_type|yesno:"単一選択,複数選択" }}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        <button onclick="editOptionGroup({{ group.id }})" 
+                                class="text-blue-600 hover:text-blue-700 mr-4">編集</button>
+                        <button onclick="deleteOptionGroup({{ group.id }})" 
+                                class="text-red-600 hover:text-red-700">削除</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-8 py-12 text-center text-gray-400">
+                        まだオプショングループが登録されていません<br>
+                        「新規オプショングループ登録」ボタンから追加してください
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 新規・編集モーダル -->
+    <div id="optionGroupModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg mx-4">
+            <div class="px-8 pt-6 pb-4">
+                <h3 id="modalTitle" class="text-2xl font-bold mb-6">新規オプショングループ登録</h3>
+                
+                <form id="optionGroupForm" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" id="groupId" name="id" value="">
+
+                    <div class="space-y-6">
+                        <!-- 対象メニュー -->
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">対象メニュー <span class="text-red-500">*</span></label>
+                            <select id="menu_id" name="menu" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                                {% for menu in menus %}
+                                <option value="{{ menu.id }}">{{ menu.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- グループ名 -->
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">グループ名 <span class="text-red-500">*</span></label>
+                            <input type="text" id="name" name="name" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" 
+                                   required placeholder="例: サイズ、トッピング">
+                        </div>
+
+                        <!-- 選択方法 -->
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">選択方法 <span class="text-red-500">*</span></label>
+                            <select id="selection_type" name="selection_type" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                                <option value="single">単一選択</option>
+                                <option value="multiple">複数選択</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="border-t px-8 py-5 flex gap-3">
+                <button onclick="hideModal()" 
+                        class="flex-1 py-4 text-gray-600 font-medium border border-gray-300 rounded-2xl hover:bg-gray-50">
+                    キャンセル
+                </button>
+                <button onclick="saveOptionGroup()" 
+                        class="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl">
+                    保存する
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showCreateModal() {
+    document.getElementById('modalTitle').textContent = '新規オプショングループ登録';
+    document.getElementById('optionGroupForm').reset();
+    document.getElementById('groupId').value = '';
+    document.getElementById('optionGroupForm').action = "{% url 'stores:a07_option_group_create' %}";
+    document.getElementById('optionGroupModal').classList.remove('hidden');
+}
+
+function editOptionGroup(id) {
+    document.getElementById('modalTitle').textContent = 'オプショングループ編集';
+    document.getElementById('groupId').value = id;
+    document.getElementById('optionGroupForm').action = `{% url 'stores:a07_option_group_update' 0 %}`.replace('0', id);
+
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (row) {
+        document.getElementById('name').value = row.cells[1].textContent.trim();
+        // selection_type은 JS로 매칭 (데이터 속성 추가 가능)
+        const select = document.getElementById('selection_type');
+        // placeholder로 기본값 설정 (실제로는 데이터 속성 추가 권장)
+    }
+
+    document.getElementById('optionGroupModal').classList.remove('hidden');
+}
+
+function saveOptionGroup() {
+    const form = document.getElementById('optionGroupForm');
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();  // 성공 시 페이지 새로고침 (기존 A05/A06 방식)
+        } else {
+            alert('保存に失敗しました。');
+        }
+    });
+}
+
+function deleteOptionGroup(id) {
+    if (!confirm('このオプショングループを削除しますか？')) return;
+    
+    fetch(`{% url 'stores:a07_option_group_delete' 0 %}`.replace('0', id), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        }
+    });
+}
+
+function hideModal() {
+    document.getElementById('optionGroupModal').classList.add('hidden');
+}
+
+// ESCキー対応
+document.addEventListener('keydown', function(e) {
+    if (e.key === "Escape") hideModal();
+});
+</script>
+
+{% endblock %}

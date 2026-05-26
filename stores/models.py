@@ -293,3 +293,43 @@ class Menu(models.Model):
         
     def __str__(self):
         return f"{self.name} ({self.price}円)"
+    
+class MenuOptionGroup(models.Model):
+    """
+    A07 メニューオプショングループ管理
+    各メニューに紐づくオプショングループ（サイズ、トッピングなど）を管理
+    """
+    menu = models.ForeignKey(
+        'Menu',  
+        on_delete=models.CASCADE,
+        related_name='option_groups',  
+        verbose_name='対象メニュー'
+    )
+    
+    name = models.CharField(
+        max_length=50,
+        verbose_name='グループ名'
+    )
+    
+    selection_type = models.CharField(
+        max_length=10,
+        choices=[
+            ('single', '単一選択'),
+            ('multiple', '複数選択')
+        ],
+        default='single',
+        verbose_name='選択方法'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
+    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name='削除日時')  # Soft Delete
+    
+    class Meta:
+        verbose_name = 'メニューオプショングループ'
+        verbose_name_plural = 'メニューオプショングループ一覧'
+        ordering = ['menu', 'name']
+    
+    def __str__(self):
+        return f"{self.menu.name} - {self.name}"
+    
