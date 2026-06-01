@@ -4,7 +4,7 @@ from django.shortcuts import render
 # A02 店舗登録画面のビュー
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from .models import Store
 from .forms import StoreRegistrationForm, StoreTableForm #forms.pyからStoreRegistrationFormとStoreTableFormをインポート
@@ -13,8 +13,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import StoreTable, Menu
 from django.contrib import messages
 from django.utils import timezone
-from .models import MenuCategory
-from .forms import MenuCategoryForm, MenuForm
+from .models import MenuCategory, MenuOptionGroup, Option
+from .forms import MenuCategoryForm, MenuForm, OptionGroupForm, OptionForm
 from django.conf import settings
 from django.db import models
 from django.core.files.storage import default_storage
@@ -456,7 +456,6 @@ class OptionGroupManagementView(LoginRequiredMixin, TemplateView):
     login_url = 'login'
     
     def get(self, request, *args, **kwargs):
-        """기존 A05/A06과 동일한 store 체크 로직"""
         user = request.user
         if not hasattr(user, 'store') or user.store is None:
             return redirect('stores:a02_store_register')
@@ -466,25 +465,151 @@ class OptionGroupManagementView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         store = self.request.user.store
         context['title'] = 'メニューオプショングループ管理'
-        # Model 아직 없으므로 placeholder
-        context['option_groups'] = []  
+        
+        context['option_groups'] = MenuOptionGroup.objects.filter(
+            menu__store=store,
+            deleted_at__isnull=True
+        ).select_related('menu').order_by('menu__name', 'name')
+        
+        context['menus'] = Menu.objects.filter(
+            store=store,
+            deleted_at__isnull=True
+        ).order_by('category__display_order', 'name')
+        
         return context
 
 
 class OptionGroupCreateView(LoginRequiredMixin, TemplateView):
-    """A07 新規オプショングループ登録 (모달용)"""
-    def get(self, request, *args, **kwargs):
-        return HttpResponse("A07 新規登録モーダル - 準備中 (기존 modal 패턴)")
+    """A07 新規オプショングループ登録"""
+    def post(self, request, *args, **kwargs):
+        store = request.user.store
+        form = OptionGroupForm(request.POST, store=store)
+        
+        if form.is_valid():
+            option_group = form.save()
+            messages.success(request, 'オプショングループを登録しました。')
+            return redirect('stores:a07_option_group_management')
+        else:
+            messages.error(request, '入力内容に誤りがあります。')
+            return redirect('stores:a07_option_group_management')
 
 
 class OptionGroupUpdateView(LoginRequiredMixin, TemplateView):
-    """A07 オプショングループ編集 (모달용)"""
-    def get(self, request, *args, **kwargs):
-        return HttpResponse("A07 編集モーダル - 準備中")
+    """A07 オプショングループ編集"""
+    def post(self, request, *args, **kwargs):
+        store = request.user.store
+        pk = kwargs.get('pk')
+        option_group = get_object_or_404(MenuOptionGroup, pk=pk, menu__store=store, deleted_at__isnull=True)
+        
+        form = OptionGroupForm(request.POST, instance=option_group, store=store)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'オプショングループを更新しました。')
+            return redirect('stores:a07_option_group_management')
+        else:
+            messages.error(request, '入力内容に誤りがあります。')
+            return redirect('stores:a07_option_group_management')
 
 
 class OptionGroupDeleteView(LoginRequiredMixin, TemplateView):
-    """A07 オプショングループ削除"""
+    """A07 オプショングループ削除 (Soft Delete)"""
     def post(self, request, *args, **kwargs):
+        store = request.user.store
+        pk = kwargs.get('pk')
+        option_group = get_object_or_404(MenuOptionGroup, pk=pk, menu__store=store, deleted_at__isnull=True)
+        
+        option_group.deleted_at = timezone.now()
+        option_group.save()
+        
         messages.success(request, 'オプショングループを削除しました。')
         return redirect('stores:a07_option_group_management')
+    
+    
+class OptionManagementView(LoginRequiredMixin, TemplateView):
+    """A08 オプション項目管理 一覧画面"""
+    template_name = 'admin/A08_option_management.html'
+    login_url = 'login'
+    
+    def get(self, request, *args, **kwargs):
+        """店舗チェック（A07と完全同一）"""
+        user = request.user
+        if not hasattr(user, 'store') or user.store is None:
+            return redirect('stores:a02_store_register')
+        return super().get(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        store = self.request.user.store
+        context['title'] = 'オプション項目管理'
+        
+        # 現在の店舗のオプションのみを表示 (Soft Delete 제외)
+        context['options'] = Option.objects.filter(
+            menu_option_group__menu__store=store,
+            deleted_at__isnull=True
+        ).select_related('menu_option_group', 'menu_option_group__menu').order_by('menu_option_group__name', 'name')
+        
+        # 模倣から使用するオプショングループ リストを渡す
+        context['option_groups'] = MenuOptionGroup.objects.filter(
+            menu__store=store,
+            deleted_at__isnull=True
+        ).select_related('menu')
+        
+        return context
+
+
+class OptionCreateView(LoginRequiredMixin, TemplateView):
+    """A08 新規オプション項目登録"""
+    def post(self, request, *args, **kwargs):
+        store = request.user.store
+        form = OptionForm(request.POST, store=store)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'オプション項目を登録しました。')
+            return redirect('stores:a08_option_management')
+        else:
+            messages.error(request, '入力内容に誤りがあります。')
+            return redirect('stores:a08_option_management')
+
+
+class OptionUpdateView(LoginRequiredMixin, TemplateView):
+    """A08 オプション項目編集"""
+    def post(self, request, *args, **kwargs):
+        store = request.user.store
+        pk = kwargs.get('pk')
+        option = get_object_or_404(
+            Option, 
+            pk=pk, 
+            menu_option_group__menu__store=store, 
+            deleted_at__isnull=True
+        )
+        
+        form = OptionForm(request.POST, instance=option, store=store)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'オプション項目を更新しました。')
+            return redirect('stores:a08_option_management')
+        else:
+            messages.error(request, '入力内容に誤りがあります。')
+            return redirect('stores:a08_option_management')
+
+
+class OptionDeleteView(LoginRequiredMixin, TemplateView):
+    """A08 オプション項目削除 (Soft Delete)"""
+    def post(self, request, *args, **kwargs):
+        store = request.user.store
+        pk = kwargs.get('pk')
+        option = get_object_or_404(
+            Option, 
+            pk=pk, 
+            menu_option_group__menu__store=store, 
+            deleted_at__isnull=True
+        )
+        
+        option.deleted_at = timezone.now()
+        option.save()
+        
+        messages.success(request, 'オプション項目を削除しました。')
+        return redirect('stores:a08_option_management')

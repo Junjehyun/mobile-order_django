@@ -1,5 +1,5 @@
 from django import forms
-from .models import Store, StoreTable, MenuCategory, Menu
+from .models import Store, StoreTable, MenuCategory, Menu, MenuOptionGroup, Option
 
 class StoreRegistrationForm(forms.ModelForm):
     """
@@ -223,3 +223,88 @@ class MenuForm(forms.ModelForm):
         ).order_by('display_order', 'name')
         
         
+class OptionGroupForm(forms.ModelForm):
+    """
+    A07 オプショングループ登録・編集用フォーム
+    """
+    class Meta:
+        model = MenuOptionGroup
+        fields = ['menu', 'name', 'selection_type']
+        labels = {
+            'menu': '対象メニュー',
+            'name': 'グループ名',
+            'selection_type': '選択方法',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'placeholder': '例: サイズ、トッピング',
+                'required': 'required'
+            }),
+            'selection_type': forms.Select(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'required': 'required'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.store = kwargs.pop('store', None)
+        super().__init__(*args, **kwargs)
+        
+        if self.store:
+            self.fields['menu'].queryset = Menu.objects.filter(
+                store=self.store,
+                deleted_at__isnull=True
+            ).order_by('category__display_order', 'name')
+        else:
+            self.fields['menu'].queryset = Menu.objects.none()
+        
+        self.fields['selection_type'].choices = [
+            ('single', '単一選択'),
+            ('multiple', '複数選択')
+        ]
+        
+class OptionForm(forms.ModelForm):
+    """
+    A08 オプション項目登録・編集用フォーム
+    Viewからstoreを受け取り、現在店舗のオプショングループのみ表示する
+    """
+    class Meta:
+        model = Option
+        fields = ['menu_option_group', 'name', 'name_en', 'additional_price']
+        labels = {
+            'menu_option_group': 'オプショングループ',
+            'name': 'オプション名',
+            'name_en': '英文名',
+            'additional_price': '追加価格 (円)',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'placeholder': '例: 小、中、大',
+                'required': 'required'
+            }),
+            'name_en': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'placeholder': '例: Small, Medium, Large'
+            }),
+            'additional_price': forms.NumberInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400',
+                'step': '0.01',
+                'min': '0'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        """Viewからstoreを受け取り、オプショングループを店舗限定でフィルタリング"""
+        self.store = kwargs.pop('store', None)
+        super().__init__(*args, **kwargs)
+        
+        if self.store:
+            # 現在店舗のMenuOptionGroupのみ選択可能（Soft Delete除外）
+            self.fields['menu_option_group'].queryset = MenuOptionGroup.objects.filter(
+                menu__store=self.store,
+                deleted_at__isnull=True
+            ).select_related('menu').order_by('menu__name', 'name')
+        else:
+            self.fields['menu_option_group'].queryset = MenuOptionGroup.objects.none()

@@ -1,0 +1,205 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-100 p-8">
+
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold">オプション項目管理</h2>
+        
+        <button onclick="showCreateModal()"
+                class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl flex items-center gap-2 transition">
+            <span class="text-xl">+</span>
+            新規オプション項目登録
+        </button>
+    </div>
+
+    <!-- オプション項目一覧 -->
+    <div class="bg-white rounded-3xl shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b">
+                <tr class="text-left text-sm text-gray-500">
+                    <th class="px-8 py-5 font-medium">オプショングループ</th>
+                    <th class="px-8 py-5 font-medium">オプション名</th>
+                    <th class="px-8 py-5 font-medium">英文名</th>
+                    <th class="px-8 py-5 font-medium text-right">追加価格</th>
+                    <th class="px-8 py-5 font-medium text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y" id="optionTableBody">
+                {% for option in options %}
+                <tr class="hover:bg-gray-50 transition" data-id="{{ option.id }}">
+                    <td class="px-8 py-6 font-medium">{{ option.menu_option_group.name }} ({{ option.menu_option_group.menu.name }})</td>
+                    <td class="px-8 py-6">{{ option.name }}</td>
+                    <td class="px-8 py-6 text-gray-500">{{ option.name_en|default:"-" }}</td>
+                    <td class="px-8 py-6 text-right font-medium">
+                        {% if option.additional_price %}
+                            +{{ option.additional_price }}円
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        <button onclick="editOption({{ option.id }})" 
+                                class="text-blue-600 hover:text-blue-700 mr-4">編集</button>
+                        <button onclick="deleteOption({{ option.id }})" 
+                                class="text-red-600 hover:text-red-700">削除</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-8 py-12 text-center text-gray-400">
+                        まだオプション項目が登録されていません<br>
+                        「新規オプション項目登録」ボタンから追加してください
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 新規・編集モーダル -->
+    <div id="optionModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg mx-4">
+            <div class="px-8 pt-6 pb-4">
+                <h3 id="modalTitle" class="text-2xl font-bold mb-6">新規オプション項目登録</h3>
+                
+                <form id="optionForm" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" id="optionId" name="id" value="">
+
+                    <div class="space-y-6">
+                        <!-- オプショングループ -->
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">オプショングループ <span class="text-red-500">*</span></label>
+                            <select id="menu_option_group_id" name="menu_option_group" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" required>
+                                {% for group in option_groups %}
+                                <option value="{{ group.id }}">{{ group.name }} ({{ group.menu.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- オプション名 -->
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">オプション名 <span class="text-red-500">*</span></label>
+                            <input type="text" id="name" name="name" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" 
+                                   required placeholder="例: 小、中、大">
+                        </div>
+
+                        <!-- 英文名 -->
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">英文名</label>
+                            <input type="text" id="name_en" name="name_en" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" 
+                                   placeholder="例: Small, Medium, Large">
+                        </div>
+
+                        <!-- 追加価格 -->
+                        <div>
+                            <label class="block text-sm text-gray-500 mb-1">追加価格 (円)</label>
+                            <input type="number" id="additional_price" name="additional_price" step="0.01" min="0"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-orange-400" 
+                                   placeholder="0">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="border-t px-8 py-5 flex gap-3">
+                <button onclick="hideModal()" 
+                        class="flex-1 py-4 text-gray-600 font-medium border border-gray-300 rounded-2xl hover:bg-gray-50">
+                    キャンセル
+                </button>
+                <button onclick="saveOption()" 
+                        class="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-2xl">
+                    保存する
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showCreateModal() {
+    document.getElementById('modalTitle').textContent = '新規オプション項目登録';
+    document.getElementById('optionForm').reset();
+    document.getElementById('optionId').value = '';
+    document.getElementById('optionForm').action = "{% url 'stores:a08_option_create' %}";
+    document.getElementById('optionModal').classList.remove('hidden');
+}
+
+function editOption(id) {
+    document.getElementById('modalTitle').textContent = 'オプション項目編集';
+    document.getElementById('optionId').value = id;
+    document.getElementById('optionForm').action = `{% url 'stores:a08_option_update' 0 %}`.replace('0', id);
+
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (row) {
+        // オプション名
+        document.getElementById('name').value = row.cells[1].textContent.trim();
+        
+        // 英文名
+        const nameEnCell = row.cells[2].textContent.trim();
+        document.getElementById('name_en').value = (nameEnCell === '-' || nameEnCell === '') ? '' : nameEnCell;
+        
+        // 追加価格
+        const priceCell = row.cells[3].textContent.trim();
+        if (priceCell && priceCell !== '-') {
+            const priceValue = priceCell.replace(/[^0-9.]/g, '');
+            document.getElementById('additional_price').value = priceValue;
+        } else {
+            document.getElementById('additional_price').value = '';
+        }
+    }
+
+    document.getElementById('optionModal').classList.remove('hidden');
+}
+
+function saveOption() {
+    const form = document.getElementById('optionForm');
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('保存に失敗しました。');
+        }
+    });
+}
+
+function deleteOption(id) {
+    if (!confirm('このオプション項目を削除しますか？')) return;
+    
+    fetch(`{% url 'stores:a08_option_delete' 0 %}`.replace('0', id), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        }
+    });
+}
+
+function hideModal() {
+    document.getElementById('optionModal').classList.add('hidden');
+}
+
+// ESCキー対応
+document.addEventListener('keydown', function(e) {
+    if (e.key === "Escape") hideModal();
+});
+</script>
+
+{% endblock %}

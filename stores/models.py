@@ -230,7 +230,6 @@ class Menu(models.Model):
         on_delete=models.CASCADE,
         related_name='menus',
         verbose_name='カテゴリー'
-        
     )
     
     # 基本情報
@@ -287,8 +286,8 @@ class Menu(models.Model):
     deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='削除日時')  # Soft Delete
     
     class Meta:
-        verbose_name = 'メニュー',
-        verbose_name_plural = 'メニュー一覧',
+        verbose_name = 'メニュー'
+        verbose_name_plural = 'メニュー一覧'
         ordering = ['category__display_order', 'name']
         
     def __str__(self):
@@ -333,3 +332,46 @@ class MenuOptionGroup(models.Model):
     def __str__(self):
         return f"{self.menu.name} - {self.name}"
     
+class Option(models.Model):
+    """
+    A08 Option 項目管理
+    個別のオプション項目(例: 小、中、大 / トッピングなど)
+    """
+    menu_option_group = models.ForeignKey(
+        'MenuOptionGroup',  # A07 もでーる
+        on_delete=models.CASCADE,
+        related_name='options',  # MenuOptionGroup.options 로 역참조 가능
+        verbose_name='オプショングループ'
+    )
+    
+    name = models.CharField(
+        max_length=50,
+        verbose_name='オプション名'
+    )
+    
+    name_en = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name='英文名'
+    )
+    
+    additional_price = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='追加価格'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
+    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name='削除日時')  # Soft Delete
+    
+    class Meta:
+        verbose_name = 'オプション項目'
+        verbose_name_plural = 'オプション項目一覧'
+        ordering = ['menu_option_group', 'name']  # 그룹 → 옵션명 순 정렬
+    
+    def __str__(self):
+        return f"{self.menu_option_group.name} - {self.name}"

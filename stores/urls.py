@@ -22,6 +22,11 @@ from .views import (
     OptionGroupCreateView,    
     OptionGroupUpdateView,    
     OptionGroupDeleteView,    
+    
+    OptionManagementView,
+    OptionCreateView,
+    OptionUpdateView,
+    OptionDeleteView,
 )
 from django.views.generic import TemplateView
 from .views import MenuManagementView
@@ -58,5 +63,10 @@ urlpatterns = [
     path('option-groups/create/', OptionGroupCreateView.as_view(), name='a07_option_group_create'),
     path('option-groups/<int:pk>/update/', OptionGroupUpdateView.as_view(), name='a07_option_group_update'),
     path('option-groups/<int:pk>/delete/', OptionGroupDeleteView.as_view(), name='a07_option_group_delete'),
-
+    
+    #A08オプション項目管理
+    path('options/', OptionManagementView.as_view(), name='a08_option_management'),
+    path('options/create/', OptionCreateView.as_view(), name='a08_option_create'),
+    path('options/<int:pk>/update/', OptionUpdateView.as_view(), name='a08_option_update'),
+    path('options/<int:pk>/delete/', OptionDeleteView.as_view(), name='a08_option_delete'),
 ]
